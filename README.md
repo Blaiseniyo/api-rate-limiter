@@ -24,7 +24,7 @@ The tools and modules employed in this project are:
 ```bash
 $ docker run -d --name redis-server -p 6379:6379 redis
 ```
-
+Then add the link to your local redis in the .env file, refer to .env-example
 ## Installation
 
 Install dependencies using NPM. and the application
