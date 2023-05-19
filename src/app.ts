@@ -1,16 +1,23 @@
-import express, {Application, Request, Response} from "express";
+import express, {Application} from "express";
+import apiRoutes from "./routes/index"
+import systemRequestLimiterMiddleware from "./middlewares/sytemRequestRateLimiter";
+import userRequestLimiterMiddleware from './middlewares/userRequestsRateLimiter';
+import rateLimiter from './middlewares/slidingWindowLimiter';
 
 
+// Express app
 const app:Application = express()
 app.use(express.json());
 
-app.get("/", (req:Request, res: Response)=>{
-    const ip: string = req.ip
-    res.json({"ip_address": ip})
+// Apply rate limiter middleware to all requests
+// app.use(userRequestLimiterMiddleware);
+// app.use(systemRequestLimiterMiddleware);
+app.use(rateLimiter);
 
-})
-
-app.listen(3000,()=>{
-    console.log("App started running at port 3000")
-})
-
+// Your routes and handlers go here...
+app.use("/api/v1/nofication", apiRoutes);
+const PORT = process.env.PORT || 4000
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});
