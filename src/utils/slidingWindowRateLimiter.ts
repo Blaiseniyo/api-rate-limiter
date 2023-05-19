@@ -1,61 +1,49 @@
 import { Response, NextFunction } from "express";
-import {
-  redisGetAsync,
-  redisExpireAsync,
-  redisSetAsync,
-} from "../utils/constants";
+import { redisClient } from "../utils/constants";
 
 
 // Middleware function for rate limiting
 const slidingWindowLimiter = async (
-    res: Response,
-    next: NextFunction,
-    key: string,
-    windowSize: number,
-    MaxRequestPerWindow: number
+  res: Response,
+  next: NextFunction,
+  key: string,
+  windowSize: number,
+  MaxRequestPerWindow: number
 ) => {
-    
+
+  const now = Date.now();
+  const windowStart = now - windowSize * 1000;
+
   try {
-    // Get the current timestamp in seconds
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const pipeline = redisClient.pipeline();
+    pipeline.zremrangebyscore(key, 0, windowStart); // Remove old entries
 
-    // Calculate the window start time
-    const windowStartTime = currentTimestamp - windowSize;
+    // Get the number of requests made within the time window
+    pipeline.zcard(key);
+    const [_, count]: any = await pipeline.exec();
 
-    // Get the number of requests made within the sliding window
-    const requestsMade = await redisGetAsync(key);
-
-    if (requestsMade) {
-      // If requests have been made within the sliding window
-      const requestCount = parseInt(requestsMade, 10);
-
-      if (requestCount >= MaxRequestPerWindow) {
-        // If the maximum number of requests has been exceeded
-        return res.status(429).json({
-          status: "error",
-          code: "429",
-          detail:
-            "To many requests please try again later or purchase more request tokens",
-        });
-      }
-
-      // Increment the request count by 1
-      await redisSetAsync(key, requestCount + 1);
-
-      // Set the expiration time for the sliding window
-      await redisExpireAsync(key, windowSize);
-    } else {
-      // If no requests have been made within the sliding window
-      await redisSetAsync(key, 1);
-
-      // Set the expiration time for the sliding window
-      await redisExpireAsync(key, windowSize);
+    // Get the key count on the index one of the count array
+    if (count[1] >= MaxRequestPerWindow) {
+      // If requests exceeds rate limite return an error
+      return res.status(429).json({
+        status: "error",
+        code: "429",
+        detail: "To many requests in a minute please try again later",
+      });
     }
 
-    // Continue to the next middleware or route handler
+    // Add the current request to the sorted set
+    pipeline.zadd(key, now, now.toString());
+    pipeline.expire(key, windowSize);
+    await pipeline.exec();
+
     next();
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({
+      status: "error",
+      code: "500",
+      detail: "Internal server error",
+    });
   }
 };
 
