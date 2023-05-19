@@ -1,8 +1,8 @@
 import express, {Application} from "express";
 import apiRoutes from "./routes/index"
 import systemRequestLimiterMiddleware from "./middlewares/sytemRequestRateLimiter";
-import userRequestLimiterMiddleware from './middlewares/userRequestsRateLimiter';
-import rateLimiter from './middlewares/slidingWindowLimiter';
+import userRequestPermonthLimiterMiddleware from './middlewares/userRequestsPerMonthRateLimiter';
+import userRateLimiter from './middlewares/userRequestByWindowRateLimiter';
 
 
 // Express app
@@ -10,9 +10,9 @@ const app:Application = express()
 app.use(express.json());
 
 // Apply rate limiter middleware to all requests
-// app.use(userRequestLimiterMiddleware);
-// app.use(systemRequestLimiterMiddleware);
-app.use(rateLimiter);
+app.use(systemRequestLimiterMiddleware);
+app.use(userRateLimiter);
+app.use(userRequestPermonthLimiterMiddleware);
 
 // Your routes and handlers go here...
 app.use("/api/v1/nofication", apiRoutes);
