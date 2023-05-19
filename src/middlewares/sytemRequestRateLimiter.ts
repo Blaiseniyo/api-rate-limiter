@@ -4,7 +4,7 @@ import {
   MAX_SYSTEM_REQUESTS_PER_WINDOW,
 } from "../utils/constants";
 
-import fixedWindowRateLimiter from "../utils/fixedWindow";
+import slidingWindowLimiter from "../utils/slidingWindowRateLimiter";
 
 // Middleware to enforce rate limiting over the entire system
 const systemRequestLimiterMiddleware = async (
@@ -12,7 +12,7 @@ const systemRequestLimiterMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  await fixedWindowRateLimiter(
+  await slidingWindowLimiter(
     res,
     next,
     "system_requests",
