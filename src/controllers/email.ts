@@ -9,7 +9,7 @@ const sendEmailControler = async (req: Request, res: Response) => {
 
     res.status(200).json({
       status: "success",
-      datail: "An email notification sent succeffully",
+      datail: "An email notification sent successfully",
     });
   } catch (error) {
     res.status(500).json({

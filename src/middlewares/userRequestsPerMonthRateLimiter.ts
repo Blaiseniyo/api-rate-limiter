@@ -13,7 +13,7 @@ const userRequestLimiterMiddleware = async (
   next: NextFunction
 ) => {
     const { api_key } = req.query; // Assuming the API key is passed in the query string
-    const key = `${api_key}`
+    const key = `month:${api_key}`;
     await slidingWindowLimiter(
       res,
       next,

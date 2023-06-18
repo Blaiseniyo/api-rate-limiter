@@ -1,6 +1,25 @@
 import { Response, NextFunction } from "express";
-import { redisClient } from "../utils/constants";
+import { ErrorResponse } from "./interfaces";
+import {
+  redisClient,
+  ALLOWED_SOFT_THROTTLING_REQUESTS_PER_USER,
+  ALLOWED_SOFT_THROTTLING_REQUESTS_DELAY,
+} from "../utils/constants";
 
+// Function to set error response
+function setErrorResponse(
+  res: Response,
+  status: string,
+  code: string,
+  detail: string
+) {
+  const errorResponse: ErrorResponse = {
+    status,
+    code,
+    detail,
+  };
+  return res.status(Number(code)).json(errorResponse);
+}
 
 // Middleware function for rate limiting
 const slidingWindowLimiter = async (
@@ -9,41 +28,42 @@ const slidingWindowLimiter = async (
   key: string,
   windowSize: number,
   MaxRequestPerWindow: number
-) => {
-
+): Promise<any> => {
   const now = Date.now();
   const windowStart = now - windowSize * 1000;
 
   try {
-    const pipeline = redisClient.pipeline();
-    pipeline.zremrangebyscore(key, 0, windowStart); // Remove old entries
 
-    // Get the number of requests made within the time window
-    pipeline.zcard(key);
+    const pipeline = redisClient.multi();
+    pipeline.zremrangebyscore(key, 0, windowStart); // Remove old entries
+    pipeline.zcard(key); // Get the number of requests made within the time window
+
     const [_, count]: any = await pipeline.exec();
 
-    // Get the key count on the index one of the count array
     if (count[1] >= MaxRequestPerWindow) {
-      // If requests exceeds rate limite return an error
-      return res.status(429).json({
-        status: "error",
-        code: "429",
-        detail: "To many requests in a minute please try again later",
-      });
+      if (
+        count[1] <
+        MaxRequestPerWindow + ALLOWED_SOFT_THROTTLING_REQUESTS_PER_USER
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, ALLOWED_SOFT_THROTTLING_REQUESTS_DELAY)
+        );
+      } else {
+        return setErrorResponse(
+          res,
+          "error",
+          "429",
+          "Too many requests. Please try again later."
+        );
+      }
     }
-
-    // Add the current request to the sorted set
     pipeline.zadd(key, now, now.toString());
     pipeline.expire(key, windowSize);
     await pipeline.exec();
 
     next();
   } catch (error) {
-    return res.status(500).json({
-      status: "error",
-      code: "500",
-      detail: "Internal server error",
-    });
+    return setErrorResponse(res, "error", "500", "Internal server error");
   }
 };
 

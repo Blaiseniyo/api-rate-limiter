@@ -8,7 +8,8 @@ import slidingWindowLimiter from "../utils/slidingWindowRateLimiter";
 
 // Middleware function for rate limiting
 const rateLimiter = async (req: Request, res: Response, next: NextFunction) => {
-  const key = `${req.ip}`;
+  const { api_key } = req.query; // Assuming the API key is passed in the query string
+  const key = `user:${api_key}`;
   await slidingWindowLimiter(
     res,
     next,

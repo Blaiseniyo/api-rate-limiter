@@ -15,7 +15,7 @@ app.use(userRateLimiter);
 app.use(userRequestPermonthLimiterMiddleware);
 
 // Your routes and handlers go here...
-app.use("/api/v1/nofication", apiRoutes);
+app.use("/api/v1/notification", apiRoutes);
 const PORT = process.env.PORT || 4000
 // Start the server
 app.listen(PORT, () => {

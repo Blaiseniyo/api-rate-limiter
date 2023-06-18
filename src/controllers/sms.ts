@@ -9,7 +9,7 @@ const sendSMSControler = async (req: Request, res: Response) => {
 
     res.status(200).json({
       status: "success",
-      datail: "An SMS notification sent succeffully",
+      datail: "An SMS notification sent successfully",
     });
 
   } catch (error) {

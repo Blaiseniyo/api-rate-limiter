@@ -1,14 +1,11 @@
+export const sendEmail = async (body: string) => {
+  // Implement the send email notification service
 
-export const sendEmail = async (body:string)=>{
+  return true;
+};
 
-    // Implement the send email notificaton service
+export const sendSMS = async (body: string) => {
+  // Implement the send SMS notification service
 
-    return true
-}
-
-export const sendSMS = async (body:string)=>{
-
-    // Implement the send SMS notificaton service
-
-    return true
-}
+  return true;
+};
