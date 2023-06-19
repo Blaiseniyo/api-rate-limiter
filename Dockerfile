@@ -17,13 +17,13 @@ COPY . .
 RUN npm run build
 
 # Expose the desired port
-EXPOSE 3000
+EXPOSE 4000
 
 # Pass environment variables from .env file during build
 ARG ENV_FILE
 ENV ENV_FILE=.env
 
+RUN chmod +x ./entrypoint.sh
+
 # Set the command to run when the container starts
-# CMD [ "sh", "-c", "source ${ENV_FILE} && node ./dist/index.js" ]
-# Set the command to run when the container starts
-CMD [ "sh", "-c", "source ${ENV_FILE} && node ./dist/app.js" ]
+ENTRYPOINT [ "sh", "/app/entrypoint.sh" ]

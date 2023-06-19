@@ -4,6 +4,47 @@ services:
     build:
       context: .
     ports:
-      - 4000:3000
+      - 4000:4000
+    networks:
+      - app-network
     env_file:
       - .env
+    depends_on:
+      - redis
+  
+  # app2:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - 4001:4000
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - redis
+
+  redis:
+    container_name: redis-container
+    restart: unless-stopped
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - app-network
+  
+  nginx:
+    build: 
+      context: .
+      dockerfile: Dockerfiles
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    networks:
+      - app-network
+    depends_on:
+      - app
+      # - app2
+
+# Docker Networks
+networks:
+  app-network:
+    driver: bridge

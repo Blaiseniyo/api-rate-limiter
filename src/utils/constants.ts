@@ -14,8 +14,8 @@ export const MAX_SYSTEM_REQUESTS_PER_WINDOW = 100;
 
 // Set the sliding window size and request limit for user request in same widow
 export const WINDOW_SIZE_IN_SECONDS = 60; // 1 minute
-export const MAX_REQUESTS_PER_WINDOW = 10;
+export const MAX_REQUESTS_PER_WINDOW = 3;
 
 
 export const ALLOWED_SOFT_THROTTLING_REQUESTS_PER_USER = 3;
-export const ALLOWED_SOFT_THROTTLING_REQUESTS_DELAY = 1000; // in milleseconds
+export const ALLOWED_SOFT_THROTTLING_REQUESTS_DELAY = 5000; // in milleseconds
